@@ -269,6 +269,8 @@ export class ChessBoard {
 
         const moveType = new Set<MoveType>();
 
+        this.handlingSpecialMoves(piece, prevX, prevY, newX, newY, moveType);
+
         this.chessBoard[prevX][prevY] = null;
         this.chessBoard[newX][newY] = piece;
 
@@ -278,5 +280,31 @@ export class ChessBoard {
         const safeSquares: SafeSquares = this.findSafeSqures()
 
         this._safeSquares = safeSquares;
+    }
+
+     private handlingSpecialMoves(piece: Piece, prevX: number, prevY: number, newX: number, newY: number, moveType: Set<MoveType>): void {
+        if (piece instanceof King && Math.abs(newY - prevY) === 2) {
+            // newY > prevY  === king side castle
+
+            const rookPositionX: number = prevX;
+            const rookPositionY: number = newY > prevY ? 7 : 0;
+            const rook = this.chessBoard[rookPositionX][rookPositionY] as Rook;
+            const rookNewPositionY: number = newY > prevY ? 5 : 3;
+            this.chessBoard[rookPositionX][rookPositionY] = null;
+            this.chessBoard[rookPositionX][rookNewPositionY] = rook;
+            rook.hasMoved = true;
+            moveType.add(MoveType.Castling);
+        }
+        else if (
+            piece instanceof Pawn &&
+            this._lastMove &&
+            this._lastMove.piece instanceof Pawn &&
+            Math.abs(this._lastMove.currX - this._lastMove.prevX) === 2 &&
+            prevX === this._lastMove.currX &&
+            newY === this._lastMove.currY
+        ) {
+            this.chessBoard[this._lastMove.currX][this._lastMove.currY] = null;
+            moveType.add(MoveType.Capture);
+        }
     }
 }
