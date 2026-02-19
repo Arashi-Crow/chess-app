@@ -25,6 +25,9 @@ export class ChessBoardComponent {
   public isPromotionActive: boolean = false;
   private promotionCoords: Coords | null = null;
   private promotedPiece: FENChar | null = null;
+  public promotionPieces(): FENChar[] {
+    return this.playerColor === Color.White ? [FENChar.WhiteKnight, FENChar.WhiteBishop, FENChar.WhiteRook, FENChar.WhiteQueen] : [FENChar.BlackKnight, FENChar.BlackBishop, FENChar.BlackRook, FENChar.BlackQueen];
+  }
 
 
   public isSquareDark(x: number, y: number): boolean {
@@ -48,6 +51,11 @@ export class ChessBoardComponent {
 
   public isSquareChecked(x: number, y: number): boolean {
     return this.checkState.isInCheck && this.checkState.x === x && this.checkState.y === y;
+  }
+
+  public isSquarePromotionSquare(x: number, y: number): boolean {
+    if (!this.promotionCoords) return false;
+    return this.promotionCoords.x === x && this.promotionCoords.y === y;
   }
 
   private unmarkingPreviouslySlectedAndSafeSquares(): void {
@@ -111,6 +119,18 @@ export class ChessBoardComponent {
     //   this.moveSound(this.lastMove.moveType);
     // else
     //   this.moveSound(new Set<MoveType>([MoveType.BasicMove]));
+  }
+
+  public promotePiece(piece: FENChar): void {
+    if (!this.promotionCoords || !this.selectedSquare.piece) return;
+    this.promotedPiece = piece;
+    const { x: newX, y: newY } = this.promotionCoords;
+    const { x: prevX, y: prevY } = this.selectedSquare;
+    this.updateBoard(prevX, prevY, newX, newY, this.promotedPiece);
+  }
+
+  public closePawnPromotionDialog(): void {
+    this.unmarkingPreviouslySlectedAndSafeSquares();
   }
 
   public move(x: number, y: number): void {
